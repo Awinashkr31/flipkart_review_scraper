@@ -1,20 +1,48 @@
 {% extends 'base.html' %}
 
 {% block head %}
-
-<title>Search Page</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 {% endblock %}
 
 {% block body %}
-<div class="content">
-    <h1 style="text-align: center">Search</h1>
+<div class="landing-container">
+    <div class="clean-card main-prompt">
+        <h1>Flipkart Review Scraper</h1>
+        <p class="subtitle">Extract and analyze product reviews instantly</p>
+        
+        <div class="search-tabs">
+            <span class="tab active" style="display: flex; align-items: center; gap: 6px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                Keyword or URL Link
+            </span>
+        </div>
 
-    <div class="form">
-        <form action="/review" method="POST">
-            <input type="text" name="content" id="content">
-            <input type="submit" value="Search">
+        <form action="/review" method="POST" id="searchForm" onsubmit="showLoading()">
+            <div class="input-group">
+                <input type="text" name="content" id="content" 
+                    placeholder="Enter a product name (e.g. iPhone 15) or paste a Flipkart URL..." 
+                    autocomplete="off" required>
+            </div>
+            <button type="submit" id="submitBtn" class="primary-btn">
+                <span>Scrape Reviews</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </button>
         </form>
+
+        <div id="loading" class="loading-state" style="display: none;">
+            <div class="loader"></div>
+            <p class="loading-text">Extracting reviews from Flipkart...</p>
+            <p class="loading-subtext">Navigating headless browser. This usually takes 15-30 seconds.</p>
+        </div>
     </div>
 </div>
+
+<script>
+function showLoading() {
+    var input = document.getElementById('content');
+    if (input.value.trim() === '') return false;
+    document.getElementById('loading').style.display = 'flex';
+    document.getElementById('submitBtn').classList.add('disabled');
+    document.querySelector('#submitBtn span').innerText = 'Scraping...';
+}
+</script>
 {% endblock %}

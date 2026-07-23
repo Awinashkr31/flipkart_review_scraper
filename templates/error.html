@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block head %}
+{% endblock %}
+
+{% block body %}
+<div class="landing-container">
+    <div class="glass-card error-card">
+        <div class="error-icon">⚠️</div>
+        <h2>Oops, something went wrong</h2>
+        <p class="error-message">{{ error_message }}</p>
+        <a href="/" class="primary-btn mt-4">
+            <span>← Try Again</span>
+        </a>
+    </div>
+</div>
+{% endblock %}

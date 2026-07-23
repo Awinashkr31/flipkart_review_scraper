@@ -1,45 +1,168 @@
-<!DOCTYPE html>
-<html lang="en" >
+{% extends 'base.html' %}
 
-<head>
-  <meta charset="UTF-8">
-  <title>Review Page</title>
+{% block head %}
+{% endblock %}
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+{% block body %}
+<div class="results-layout">
+    <div class="top-bar">
+        <a href="/" class="btn-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Back
+        </a>
+        <a href="/download/{{ csv_filename }}" class="btn-primary" download>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Download CSV
+        </a>
+    </div>
 
+    <!-- Product Info Card -->
+    <div class="clean-card product-card">
+        {% if product_info.image %}
+        <div class="product-image">
+            <a href="{{ product_info.url }}" target="_blank">
+                <img src="{{ product_info.image }}" alt="Product Image">
+            </a>
+        </div>
+        {% endif %}
+        <div class="product-details">
+            <h2>
+                <a href="{{ product_info.url }}" target="_blank" style="display: flex; align-items: center; gap: 8px;">
+                    {{ product_info.title }}
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="link-logo"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </a>
+            </h2>
+            <div class="product-meta">
+                {% if product_info.price and product_info.price != "N/A" %}
+                <span class="price">{{ product_info.price }}</span>
+                {% endif %}
+                <span class="divider">•</span>
+                <span class="total-reviews">{{ reviews|length }} Reviews Scraped</span>
+            </div>
+            {% if product_info.rating and product_info.rating != "N/A" %}
+            <div class="overall-rating">
+                <span class="rating-number">{{ product_info.rating }}</span>
+                <span class="rating-star">★</span>
+                <span class="rating-label">Overall Rating</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
 
-      <link rel="stylesheet" href="./style.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Analytics Dashboard -->
+    <div class="analytics-grid">
+        <!-- Rating Distribution -->
+        <div class="clean-card distribution-card">
+            <h3>Rating Distribution</h3>
+            <div class="chart-container" id="distributionChart">
+                <!-- JS will populate this -->
+            </div>
+        </div>
 
+        <!-- Filters -->
+        <div class="clean-card filtering-card">
+            <h3>Filter Reviews</h3>
+            <div class="filter-buttons" id="filterContainer">
+                <button class="filter-btn active" data-filter="all">All Stars</button>
+                <button class="filter-btn" data-filter="5">5 ★</button>
+                <button class="filter-btn" data-filter="4">4 ★</button>
+                <button class="filter-btn" data-filter="3">3 ★</button>
+                <button class="filter-btn" data-filter="2">2 ★</button>
+                <button class="filter-btn" data-filter="1">1 ★</button>
+            </div>
+        </div>
+    </div>
 
-</head>
+    <!-- Reviews Grid -->
+    <div class="reviews-grid" id="reviewsGrid">
+        {% for review in reviews %}
+        <div class="review-card clean-card" data-rating="{{ review.Rating }}">
+            <div class="review-header">
+                <div class="review-meta">
+                    <div class="avatar">{{ review.Name[:1] if review.Name else 'A' }}</div>
+                    <span class="reviewer-name">{{ review.Name }}</span>
+                </div>
+                <!-- Dynamic sentiment badge logic via CSS classes based on rating -->
+                {% set rating = review.Rating | float if review.Rating != 'N/A' and review.Rating|length > 0 else 0 %}
+                {% if rating >= 4 %}
+                    <span class="sentiment-badge positive">Positive</span>
+                {% elif rating == 3 %}
+                    <span class="sentiment-badge neutral">Neutral</span>
+                {% elif rating > 0 %}
+                    <span class="sentiment-badge negative">Negative</span>
+                {% endif %}
+            </div>
+            
+            <div class="review-rating">
+                <!-- Render visual stars -->
+                <div class="stars-outer" title="{{ review.Rating }} out of 5">
+                    <div class="stars-inner" style="width: {{ (rating / 5) * 100 }}%;"></div>
+                </div>
+                <span class="rating-text">({{ review.Rating }})</span>
+            </div>
 
-<body>
-
-  <div class="table-users">
-   <div class="header">Reviews</div>
-
-   <table cellspacing="0">
-      <tr>
-         <th>Product</th>
-         <th>Name</th>
-         <th>Rating</th>
-         <th>Comment Heading</th>
-         <th width="230">Comments</th>
-      </tr>
-         {% for review in reviews %}
-      <tr>
-          <td>{{review['Product']}}</td>
-         <td>{{review['Name']}}</td>
-         <td>{{review['Rating']}}</td>
-         <td>{{review['CommentHead']}}</td>
-         <td>{{review['Comment']}} </td>
-       {% endfor %}
-   </table>
+            <h4 class="review-title">{{ review.CommentHead }}</h4>
+            <p class="review-body">{{ review.Comment }}</p>
+        </div>
+        {% endfor %}
+    </div>
 </div>
 
+<script>
+    // Analytics and Filtering Logic
+    document.addEventListener('DOMContentLoaded', () => {
+        const reviews = document.querySelectorAll('.review-card');
+        const counts = {1:0, 2:0, 3:0, 4:0, 5:0};
+        let totalValids = 0;
 
+        // Calculate distribution
+        reviews.forEach(card => {
+            const rating = parseInt(card.dataset.rating);
+            if (!isNaN(rating) && rating >= 1 && rating <= 5) {
+                counts[rating]++;
+                totalValids++;
+            }
+        });
 
-</body>
+        // Render Distribution Chart
+        const chartContainer = document.getElementById('distributionChart');
+        if (totalValids > 0) {
+            [5, 4, 3, 2, 1].forEach(star => {
+                const percent = Math.round((counts[star] / totalValids) * 100);
+                const row = document.createElement('div');
+                row.className = 'chart-row';
+                row.innerHTML = `
+                    <div class="chart-label">${star} ★</div>
+                    <div class="chart-bar-bg">
+                        <div class="chart-bar-fill color-${star}" style="width: ${percent}%;"></div>
+                    </div>
+                    <div class="chart-value">${percent}%</div>
+                `;
+                chartContainer.appendChild(row);
+            });
+        } else {
+            chartContainer.innerHTML = '<p class="text-muted">No rating data available.</p>';
+        }
 
-</html>
+        // Filtering Logic
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update active state
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Filter cards
+                const filterVal = btn.dataset.filter;
+                reviews.forEach(card => {
+                    if (filterVal === 'all' || card.dataset.rating === filterVal) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}
